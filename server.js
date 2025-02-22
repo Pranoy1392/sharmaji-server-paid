@@ -1,35 +1,55 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*", // Allow Phaser game to connect
-        methods: ["GET", "POST"]
-    }
-});
+const io = new Server(server);
 
-app.use(cors()); // Enable CORS
+let activeRooms = {}; // Stores active PC rooms
 
+// Serve static files from 'public' folder
+app.use(express.static("public"));
+
+// Handle WebSocket connections
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-    socket.on("join_room", (roomCode) => {
+    // PC creates a room
+    socket.on("create_room", (roomCode) => {
+        if (!activeRooms[roomCode]) {
+            activeRooms[roomCode] = { players: [] };
+        }
         socket.join(roomCode);
-        console.log(`User ${socket.id} joined room ${roomCode}`);
-        io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+        activeRooms[roomCode].players.push(socket.id);
+        console.log(`Room ${roomCode} created by ${socket.id}`);
+        io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
     });
 
+    // Phone joins a room
+    socket.on("join_room", (roomCode) => {
+        if (activeRooms[roomCode]) {
+            socket.join(roomCode);
+            activeRooms[roomCode].players.push(socket.id);
+            console.log(`User ${socket.id} joined room ${roomCode}`);
+            io.to(roomCode).emit("room_joined", socket.id);
+        }
+    });
+
+    // Handle disconnection
     socket.on("disconnect", () => {
         console.log(`User ${socket.id} disconnected`);
+        for (let roomCode in activeRooms) {
+            activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
+            if (activeRooms[roomCode].players.length === 0) {
+                delete activeRooms[roomCode];
+                io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+            }
+        }
     });
 });
 
-// Use Glitch-provided port
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`WebSocket server running on port ${PORT}`);
+// Start server
+server.listen(3000, () => {
+    console.log("WebSocket server running on Glitch!");
 });
