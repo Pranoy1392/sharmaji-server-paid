@@ -15,7 +15,7 @@ const io = new Server(server, {
 app.use(cors()); // Enable CORS
 app.use(express.static("public")); // Serve Phaser files
 
-let activeRooms = {}; // Stores active PC rooms
+const activeRooms = new Set(); // Stores active PC rooms
 
 // Serve static files from 'public' folder
 app.use(express.static("public"));
