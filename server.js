@@ -1,10 +1,19 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Allow connections from anywhere
+        methods: ["GET", "POST"]
+    }
+});
+
+app.use(cors()); // Enable CORS
+app.use(express.static("public")); // Serve Phaser files
 
 let activeRooms = {}; // Stores active PC rooms
 
@@ -50,6 +59,8 @@ io.on("connection", (socket) => {
 });
 
 // Start server
-server.listen(3000, () => {
-    console.log("WebSocket server running on Glitch!");
+// Use Glitch-provided port OR default to 3000
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
