@@ -42,18 +42,21 @@ io.on("connection", (socket) => {
 
     // Phone joins a room
     socket.on("join_room", (roomCode) => {
-        if (!activeRooms.has(roomCode)) {
-          socket.emit("room_invalid");
-          return;
-        }
-      
-        if (activeRooms[roomCode]) {
-          socket.join(roomCode);
-          activeRooms[roomCode].players.push(socket.id);
-          console.log(`User ${socket.id} joined room ${roomCode}`);
-          io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
-          }
-       });
+      if (!activeRooms[roomCode]) {  // Fix: Use object check
+        socket.emit("room_invalid");
+        return;
+      }
+
+      socket.join(roomCode);
+    
+      if (!activeRooms[roomCode].players.includes(socket.id)) { 
+        activeRooms[roomCode].players.push(socket.id);
+      }
+    
+      console.log(`✅ User ${socket.id} joined room ${roomCode}`);
+      io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+      console.log(activeRooms);
+    });
 
     // Handle disconnection
     socket.on("disconnect", () => {
