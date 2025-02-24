@@ -62,6 +62,8 @@ io.on("connection", (socket) => {
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
       io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
       console.log(activeRooms);
+      io.to(roomCode).emit("join_room", socket.id);
+      
     });
   
     socket.on("accelerometer_data", ({ room, x, y, z }) => {
