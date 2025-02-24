@@ -47,14 +47,12 @@ io.on("connection", (socket) => {
           return;
         }
       
-        if (!activeRooms[roomCode].players.includes(socket.id)) {
-          if (activeRooms[roomCode]) {
-            socket.join(roomCode);
-            activeRooms[roomCode].players.push(socket.id);
-            console.log(`User ${socket.id} joined room ${roomCode}`);
-            io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+        if (activeRooms[roomCode]) {
+          socket.join(roomCode);
+          activeRooms[roomCode].players.push(socket.id);
+          console.log(`User ${socket.id} joined room ${roomCode}`);
+          io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
           }
-        }
        });
 
     // Handle disconnection
