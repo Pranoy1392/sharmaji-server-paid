@@ -15,7 +15,7 @@ const io = new Server(server, {
 app.use(cors()); // Enable CORS
 app.use(express.static("public")); // Serve Phaser files
 
-const activeRooms = new Set(); // Stores active PC rooms
+const activeRooms = {}; // Stores active PC rooms
 
 // Serve static files from 'public' folder
 app.use(express.static("public"));
@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
       }
     
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
-      io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+      io.to(roomCode).emit("room_joined", socket.id);
       console.log(activeRooms);
     });
   
