@@ -22,7 +22,7 @@ app.use(express.static("public"));
 
 // Handle WebSocket connections
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+    console.log(`User connected: ${socket.id}. Total connected: ${io.engine.clientsCount}`);
 
     // PC creates a room
     socket.on("create_room", (roomCode) => {
@@ -30,7 +30,11 @@ io.on("connection", (socket) => {
             activeRooms[roomCode] = { players: [] };
         }
         socket.join(roomCode);
-        activeRooms[roomCode].players.push(socket.id);
+      
+        if (!activeRooms[roomCode].players.includes(socket.id)) {
+          activeRooms[roomCode].players.push(socket.id);
+        }
+      
         console.log(`Room ${roomCode} created by ${socket.id}`);
         io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
         console.log(activeRooms);
@@ -42,13 +46,16 @@ io.on("connection", (socket) => {
           socket.emit("room_invalid");
           return;
         }
-        if (activeRooms[roomCode]) {
+      
+        if (!activeRooms[roomCode].players.includes(socket.id)) {
+          if (activeRooms[roomCode]) {
             socket.join(roomCode);
             activeRooms[roomCode].players.push(socket.id);
             console.log(`User ${socket.id} joined room ${roomCode}`);
             io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+          }
         }
-    });
+       });
 
     // Handle disconnection
     socket.on("disconnect", () => {
