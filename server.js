@@ -62,6 +62,7 @@ io.on("connection", (socket) => {
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
       io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
       console.log(activeRooms);
+      console.log(`ℹ️ Sending "join_room" to room ${roomCode} with playerId ${socket.id}`);
       io.to(roomCode).emit("join_room", socket.id);
       
     });
