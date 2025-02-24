@@ -46,6 +46,12 @@ io.on("connection", (socket) => {
         socket.emit("room_invalid");
         return;
       }
+      
+      // Limit room to 2 players
+      if (activeRooms[roomCode].players.length >= 2) {
+        socket.emit("room_full"); // Notify the client
+        return;
+      }
 
       socket.join(roomCode);
     
