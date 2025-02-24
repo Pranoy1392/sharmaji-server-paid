@@ -63,6 +63,10 @@ io.on("connection", (socket) => {
       io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
       console.log(activeRooms);
     });
+  
+    socket.on("accelerometer_data", ({ room, accelX, accelY, accelZ }) => {
+      io.to(room).emit("update_accelerometer", { accelX, accelY, accelZ });
+    });
 
     // Handle disconnection
     socket.on("disconnect", () => {
