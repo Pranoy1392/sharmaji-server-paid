@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
     });
 
     // Phone joins a room
-    socket.on("join_room", (roomCode) => {
+    socket.on("player_joined", (roomCode) => {
       if (!activeRooms[roomCode]) {  // Fix: Use object check
         socket.emit("room_invalid");
         return;
@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
       }
     
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
-      io.to(roomCode).emit("room_joined", socket.id);
+      io.to(roomCode).emit("room_join_success", `User ${socket.id} joined room ${roomCode}`);
       console.log(activeRooms);
     });
   
