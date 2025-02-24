@@ -33,6 +33,7 @@ io.on("connection", (socket) => {
         activeRooms[roomCode].players.push(socket.id);
         console.log(`Room ${roomCode} created by ${socket.id}`);
         io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+        console.log(activeRooms);
     });
 
     // Phone joins a room
