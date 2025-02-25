@@ -26,42 +26,36 @@ io.on("connection", (socket) => {
 
     // PC creates a room
     socket.on("create_room", (roomCode) => {
-        if (!activeRooms[roomCode]) {
-            activeRooms[roomCode] = { players: [] };
-        }
-        socket.join(roomCode);
-      
-        if (!activeRooms[roomCode].players.includes(socket.id)) {
+      if (!activeRooms[roomCode]) {
+          activeRooms[roomCode] = { players: [] };
+      }
+
+       //🔹 Prevent duplicate entries
+      if (!activeRooms[roomCode].players.includes(socket.id)) {
           activeRooms[roomCode].players.push(socket.id);
-        }
-      
-        console.log(`Room ${roomCode} created by ${socket.id}`);
-        io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
-        console.log(activeRooms);
-    });
+      }
+
+      socket.join(roomCode);
+      console.log(`Room ${roomCode} created by ${socket.id}`);
+      io.emit("update_rooms", Object.keys(activeRooms));
+  });
 
     // Phone joins a room
     socket.on("join_room", (roomCode) => {
-    if (!activeRooms[roomCode]) {  
-        socket.emit("room_invalid");
-        return;
-    }
+      if (!activeRooms[roomCode]) {  // Fix: Use object check
+          socket.emit("room_invalid");
+          return;
+      }
 
-    // Limit room to 2 players
-    if (activeRooms[roomCode].players.length >= 2) {
-        socket.emit("room_full"); // Notify the client
-        return;
-    }
+      socket.join(roomCode);
 
-    socket.join(roomCode);
+      if (!activeRooms[roomCode].players.includes(socket.id)) { 
+          activeRooms[roomCode].players.push(socket.id);
+      }
 
-    if (!activeRooms[roomCode].players.includes(socket.id)) { 
-        activeRooms[roomCode].players.push(socket.id);
-    }
-
-    console.log(`✅ User ${socket.id} joined room ${roomCode}`);
-    io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
-});
+      console.log(`✅ User ${socket.id} joined room ${roomCode}`);
+      io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+  });
 
 
 
