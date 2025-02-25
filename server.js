@@ -64,8 +64,11 @@ io.on("connection", (socket) => {
       
   });
   
+    // Accelerometer handling
     socket.on("accelerometer_data", ({ room, x, y, z }) => {
-      io.to(room).emit("receive_accelerometer", { x, y, z });
+      activeRooms[room].players.forEach(playerId => {
+        io.to(playerId).emit("update_accelerometer", { x, y, z });
+      });
   });
 
 
