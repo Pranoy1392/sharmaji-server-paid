@@ -63,6 +63,10 @@ io.on("connection", (socket) => {
       console.log(activeRooms);
       
   });
+  
+    socket.on("accelerometer_data", ({ room, x, y, z }) => {
+      io.to(room).emit("receive_accelerometer", { x, y, z });
+  });
 
 
 
