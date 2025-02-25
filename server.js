@@ -54,8 +54,14 @@ io.on("connection", (socket) => {
       }
 
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
-      io.to(roomCode).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+      
+      // Emit the event to each player in the room individually
+      activeRooms[roomCode].players.forEach(playerId => {
+        io.to(playerId).emit("room_joined", `User ${socket.id} joined room ${roomCode}`);
+      });
+      
       console.log(activeRooms);
+      
   });
 
 
