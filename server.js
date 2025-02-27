@@ -26,6 +26,7 @@ io.on("connection", (socket) => {
 
     // PC creates a room
     socket.on("create_room", (roomCode) => {
+      socket.data.deviceType = "pc"; // Tag as PC
       if (!activeRooms[roomCode]) {
           activeRooms[roomCode] = { players: [] };
       }
@@ -52,6 +53,9 @@ io.on("connection", (socket) => {
         socket.emit("room_full"); // Notify the client
         return;
       }
+      
+      socket.data.deviceType = "phone"; // Tag as Phone
+      socket.data.roomCode = roomCode;  // Store the room code
 
       socket.join(roomCode);
 
@@ -86,6 +90,11 @@ io.on("connection", (socket) => {
     // Handle disconnection
     socket.on("disconnect", () => {
         console.log(`User ${socket.id} disconnected`);
+        if (socket.data.deviceType === "phone") {
+          socket.data.roomCode.players.forEach(playerId => {
+            io.to(playerId).emit("bhago", `User ${socket.id} disconnected from room`);
+      });
+        }
         for (let roomCode in activeRooms) {
             activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
             if (activeRooms[roomCode].players.length === 0) {
