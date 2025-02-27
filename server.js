@@ -68,9 +68,9 @@ io.on("connection", (socket) => {
     socket.on("accelerometer_data", ({ room, x, y, z }) => {
       activeRooms[room].players.forEach(playerId => {
         if (playerId != socket.id) {
-          io.to(playerId).emit("update_accelerometer", { x, y, z });
-          console.log("Accel values: ", { x, y, z });
+          io.to(playerId).emit("receive_accelerometer", { x, y, z });
         }
+        console.log("Accel values: ", { x, y, z });
       });
   });
 
