@@ -27,18 +27,16 @@ io.on("connection", (socket) => {
     // PC creates a room
     socket.on("create_room", (roomCode) => {
       if (!activeRooms[roomCode]) {
-          activeRooms[roomCode] = activeRooms[roomCode] = { pc: null, phone: null }; // Separate PC & Phone
+          activeRooms[roomCode] = { players: [] };
       }
 
        //🔹 Prevent duplicate entries
       if (!activeRooms[roomCode].players.includes(socket.id)) {
           activeRooms[roomCode].players.push(socket.id);
       }
-      
-      activeRooms[roomCode].pc = socket.id; // Store PC socket ID
-      
+
       socket.join(roomCode);
-      console.log(`Room ${roomCode} created by PC ${socket.id}`);
+      console.log(`Room ${roomCode} created by ${socket.id}`);
       io.emit("update_rooms", Object.keys(activeRooms));
   });
 
@@ -49,20 +47,19 @@ io.on("connection", (socket) => {
           return;
       }
       
-      if (activeRooms[roomCode].phone) {
-        socket.emit("room_full");
+      // Limit room to 2 players
+      if (activeRooms[roomCode].players.length >= 2) {
+        socket.emit("room_full"); // Notify the client
         return;
       }
 
-      activeRooms[roomCode].phone = socket.id; // Store Phone socket ID
-      
       socket.join(roomCode);
 
       if (!activeRooms[roomCode].players.includes(socket.id)) { 
           activeRooms[roomCode].players.push(socket.id);
       }
 
-      console.log(`✅ Phone ${socket.id} joined room ${roomCode}`);
+      console.log(`✅ User ${socket.id} joined room ${roomCode}`);
       
       // Emit the event to each player in the room individually
       activeRooms[roomCode].players.forEach(playerId => {
