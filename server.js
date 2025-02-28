@@ -27,6 +27,7 @@ io.on("connection", (socket) => {
     // PC creates a room
     socket.on("create_room", (roomCode) => {
       socket.data.deviceType = "pc"; // Tag as PC
+      socket.data.roomCode = roomCode;
       if (!activeRooms[roomCode]) {
           activeRooms[roomCode] = { players: [] };
       }
@@ -91,10 +92,19 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log(`User ${socket.id} disconnected`);
         for (let roomCode in activeRooms) {
+          
+            if (!roomCode || !activeRooms[roomCode]) return;
             activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
+          
+            if (socket.data.deviceType === "phone") {
+              console.log(`📴 Phone in room ${roomCode} disconnected`);
+              io.to(roomCode).emit("phone_disconnected"); // Notify PC
+            }
+          
             if (activeRooms[roomCode].players.length === 0) {
                 delete activeRooms[roomCode];
                 io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+              
             }
         }
     });
