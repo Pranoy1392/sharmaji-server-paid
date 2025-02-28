@@ -98,7 +98,9 @@ io.on("connection", (socket) => {
           
             if (socket.data.deviceType === "phone") {
               console.log(`📴 Phone in room ${roomCode} disconnected`);
-              io.to(roomCode).emit("phone_disconnected"); // Notify PC
+              activeRooms[roomCode].players.forEach(playerId => {
+                io.to(playerId).emit("phone_disconnected");
+              });
             }
           
             if (activeRooms[roomCode].players.length === 0) {
