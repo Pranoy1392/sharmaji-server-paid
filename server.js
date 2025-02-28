@@ -90,11 +90,6 @@ io.on("connection", (socket) => {
     // Handle disconnection
     socket.on("disconnect", () => {
         console.log(`User ${socket.id} disconnected`);
-        //if (socket.data.deviceType === "phone") {
-          //socket.data.roomCode.players.forEach(playerId => {
-            //io.to(playerId).emit("bhago", `User ${socket.id} disconnected from room`);
-      //});
-        //}
         for (let roomCode in activeRooms) {
             activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
             if (activeRooms[roomCode].players.length === 0) {
