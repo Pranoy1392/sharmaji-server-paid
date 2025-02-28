@@ -90,7 +90,6 @@ io.on("connection", (socket) => {
     // Handle disconnection
     socket.on("disconnect", () => {
         console.log(`User ${socket.id} disconnected`);
-        if ()
         for (let roomCode in activeRooms) {
             activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
             if (activeRooms[roomCode].players.length === 0) {
