@@ -38,6 +38,7 @@ io.on("connection", (socket) => {
 
       socket.join(roomCode);
       console.log(`Room ${roomCode} created by ${socket.id}`);
+      console.log(`${socket.data.deviceType}`);
       io.emit("update_rooms", Object.keys(activeRooms));
   });
 
