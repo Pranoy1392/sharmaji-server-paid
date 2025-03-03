@@ -101,6 +101,15 @@ io.on("connection", (socket) => {
               activeRooms[roomCode].players.forEach(playerId => {
                 io.to(playerId).emit("phone_disconnected");
               });
+            } else if (socket.data.deviceType === "pc") {
+              console.log(`PC with room ${roomCode} disconnected`);
+              
+              activeRooms[roomCode].players.forEach(playerId => {
+                io.to(playerId).emit("room_forceshut");
+              }); // Notify all in the room
+              
+              delete activeRooms[roomCode]; // Remove room
+              io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
             }
           
             if (activeRooms[roomCode].players.length === 0) {
