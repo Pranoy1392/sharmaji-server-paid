@@ -96,6 +96,11 @@ io.on("connection", (socket) => {
             if (!roomCode || !activeRooms[roomCode]) return;
             activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
           
+            if (activeRooms[roomCode].players.length === 0) {
+                delete activeRooms[roomCode];
+                io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+            }
+          
             if (socket.data.deviceType === "phone") {
               console.log(`📴 Phone in room ${roomCode} disconnected`);
               activeRooms[roomCode].players.forEach(playerId => {
@@ -112,11 +117,6 @@ io.on("connection", (socket) => {
               io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
             }
           
-            if (activeRooms[roomCode].players.length === 0) {
-                delete activeRooms[roomCode];
-                io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
-              
-            }
         }
     });
 });
