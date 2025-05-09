@@ -91,34 +91,31 @@ io.on("connection", (socket) => {
 
     // Handle disconnection
     socket.on("disconnect", () => {
-        console.log(`User ${socket.id} disconnected`);
-        for (let roomCode in activeRooms) {
-          
-            if (!roomCode || !activeRooms[roomCode]) return;
-            activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
-          
-            if (activeRooms[roomCode].players.length === 0) {
-                delete activeRooms[roomCode];
-                io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
-            }
-          
-            if (socket.data.deviceType === "phone") {
-              console.log(`📴 Phone in room ${roomCode} disconnected`);
-              activeRooms[roomCode].players.forEach(playerId => {
-                io.to(playerId).emit("phone_disconnected");
-              });
-            } else if (socket.data.deviceType === "pc") {
-              console.log(`PC with room ${roomCode} disconnected`);
-              
-              activeRooms[roomCode].players.forEach(playerId => {
-                io.to(playerId).emit("room_forceshut");
-              }); // Notify all in the room
-              
-              delete activeRooms[roomCode]; // Remove room
-              io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
-            }
-          
-        }
+      const roomCode = socket.data.roomCode;
+      if (!roomCode || !activeRooms[roomCode]) return;
+
+      console.log(`🔌 User ${socket.id} disconnected from room ${roomCode}`);
+
+      activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
+
+      if (socket.data.deviceType === "phone") {
+        console.log(`📴 Phone in room ${roomCode} disconnected`);
+        activeRooms[roomCode].players.forEach(playerId => {
+          io.to(playerId).emit("phone_disconnected");
+        });
+      } else if (socket.data.deviceType === "pc") {
+        console.log(`🖥️ PC in room ${roomCode} disconnected`);
+        activeRooms[roomCode].players.forEach(playerId => {
+          io.to(playerId).emit("room_forceshut");
+        });
+        delete activeRooms[roomCode];
+        io.emit("update_rooms", Object.keys(activeRooms));
+      }
+
+      // Clean up if no players remain
+      if (activeRooms[roomCode]?.players.length === 0) {
+        delete activeRooms[roomCode];
+      }
     });
 });
 
