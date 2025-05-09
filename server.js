@@ -40,6 +40,11 @@ io.on("connection", (socket) => {
       console.log(`Room ${roomCode} created by ${socket.id}`);
       console.log(`${socket.data.deviceType}`);
       io.emit("update_rooms", Object.keys(activeRooms));
+      
+      activeRooms[roomCode].players.forEach(playerId => {
+        io.to(playerId).emit("putroomcode", roomCode);
+      });
+      //console.log(activeRooms);
   });
 
     // Phone joins a room
