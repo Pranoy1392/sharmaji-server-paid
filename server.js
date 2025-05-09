@@ -120,7 +120,6 @@ io.on("connection", (socket) => {
           
         }
     });
-
 });
 
 // Start server
