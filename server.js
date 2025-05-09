@@ -91,50 +91,35 @@ io.on("connection", (socket) => {
 
     // Handle disconnection
     socket.on("disconnect", () => {
-    const roomCode = socket.data.roomCode;
-    const deviceType = socket.data.deviceType;
-
-    console.log(`User ${socket.id} disconnected`);
-
-    if (!roomCode || !activeRooms[roomCode]) return;
-
-    activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
-
-    // TEMPORARILY hold the room if PC disconnected (graceful reconnect)
-    if (deviceType === "pc") {
-      console.log(`🕒 PC from room ${roomCode} disconnected. Waiting before removal.`);
-
-      setTimeout(() => {
-        const roomStillExists = activeRooms[roomCode];
-        const pcStillConnected = roomStillExists && roomStillExists.players.some(id => {
-          const sock = io.sockets.sockets.get(id);
-          return sock?.data.deviceType === "pc";
-        });
-
-        if (!pcStillConnected) {
-          console.log(`❌ No PC reconnected to room ${roomCode}, closing room.`);
-          // Notify all remaining players
-          roomStillExists?.players.forEach(id => {
-            io.to(id).emit("room_forceshut");
-          });
-          delete activeRooms[roomCode];
-          io.emit("update_rooms", Object.keys(activeRooms));
+        console.log(`User ${socket.id} disconnected`);
+        for (let roomCode in activeRooms) {
+          
+            if (!roomCode || !activeRooms[roomCode]) return;
+            activeRooms[roomCode].players = activeRooms[roomCode].players.filter(id => id !== socket.id);
+          
+            if (activeRooms[roomCode].players.length === 0) {
+                delete activeRooms[roomCode];
+                io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+            }
+          
+            if (socket.data.deviceType === "phone") {
+              console.log(`📴 Phone in room ${roomCode} disconnected`);
+              activeRooms[roomCode].players.forEach(playerId => {
+                io.to(playerId).emit("phone_disconnected");
+              });
+            } else if (socket.data.deviceType === "pc") {
+              console.log(`PC with room ${roomCode} disconnected`);
+              
+              activeRooms[roomCode].players.forEach(playerId => {
+                io.to(playerId).emit("room_forceshut");
+              }); // Notify all in the room
+              
+              delete activeRooms[roomCode]; // Remove room
+              io.emit("update_rooms", Object.keys(activeRooms)); // Update room list
+            }
+          
         }
-      }, 3000); // ⏳ 3 seconds grace period
-
-    } else if (deviceType === "phone") {
-      console.log(`📴 Phone in room ${roomCode} disconnected`);
-      activeRooms[roomCode].players.forEach(playerId => {
-        io.to(playerId).emit("phone_disconnected");
-      });
-    }
-
-    // If room ends up empty, remove it
-    if (activeRooms[roomCode]?.players.length === 0) {
-      delete activeRooms[roomCode];
-      io.emit("update_rooms", Object.keys(activeRooms));
-    }
-  });
+    });
 
 });
 
