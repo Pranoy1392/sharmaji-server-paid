@@ -78,13 +78,18 @@ io.on("connection", (socket) => {
   
     // Accelerometer handling
     socket.on("accelerometer_data", ({ room, x, y, z }) => {
-      activeRooms[room].players.forEach(playerId => {
-        if (playerId != socket.id) {
-          io.to(playerId).emit("receive_accelerometer", { x, y, z });
-        }
-        console.log("Accel values: ", { x, y, z });
-      });
-  });
+      if (activeRooms[room] && Array.isArray(activeRooms[room].players)) {
+        activeRooms[room].players.forEach(playerId => {
+          if (playerId !== socket.id) {
+            io.to(playerId).emit("receive_accelerometer", { x, y, z });
+          }
+        });
+        console.log("Accel values:", { x, y, z });
+      } else {
+        console.warn(`⚠️ Received accelerometer data for invalid or closed room: ${room}`);
+      }
+    });
+
 
 
 
